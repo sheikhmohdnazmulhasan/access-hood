@@ -199,7 +199,10 @@ export const Demo = () => {
     &lt;AccessHood
       password="demo-password"
       passwordHint="Ask the team lead"
-      metadata={{ title: "Protected Preview" }}
+      metadata={
+          title: "Protected Preview",
+          description: "This is a protected preview"
+        }
       theme={{
         buttonBackground: "#2563eb",
         buttonBorder: "#1e3a8a",

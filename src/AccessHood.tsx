@@ -19,13 +19,17 @@ export type AccessHoodMetadata = {
   description?: string;
 };
 
-export type AccessHoodProps = {
+// This is the type that will be used internally by the component
+type AccessHoodProps = {
   children: React.ReactNode;
   metadata?: AccessHoodMetadata;
   password: string;
   passwordHint?: string;
   theme?: Partial<AccessHoodTheme>;
 };
+
+// This is the type that will be exported and used by the consumer
+export type AccessHood = Omit<AccessHoodProps, "children">;
 
 /**
  * AccessHood component

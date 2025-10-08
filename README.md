@@ -21,7 +21,10 @@ export const Demo = () => {
     <AccessHood
       password={"demo-password"}
       passwordHint="Ask the team lead"
-      metadata={{ title: "Protected Preview" }}
+      metadata={
+        title: "Protected Preview",
+        description: "This is a protected preview"
+        }
       theme={{
         // override any colors you want; all fields optional
         buttonBackground: "#2563eb",
