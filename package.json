@@ -1,6 +1,6 @@
 {
   "name": "access-hood",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Zero-dependency client-side access hood for React.",
   "license": "MIT",
   "type": "module",
