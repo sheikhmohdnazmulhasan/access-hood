@@ -19,6 +19,14 @@ export type AccessHoodMetadata = {
   description?: string;
 };
 
+export type AccessHoodProps = {
+  children: React.ReactNode;
+  metadata?: AccessHoodMetadata;
+  password: string;
+  passwordHint?: string;
+  theme?: Partial<AccessHoodTheme>;
+};
+
 /**
  * AccessHood component
  *
@@ -49,13 +57,7 @@ export function AccessHood({
   password,
   passwordHint,
   theme,
-}: {
-  children: React.ReactNode;
-  metadata?: AccessHoodMetadata;
-  password: string;
-  passwordHint?: string;
-  theme?: Partial<AccessHoodTheme>;
-}) {
+}: AccessHoodProps) {
   const [pwd, setPwd] = useState("");
   const [err, setErr] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
