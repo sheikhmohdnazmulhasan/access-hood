@@ -60,7 +60,6 @@ export function AccessHood({
   const [err, setErr] = useState("");
   const [isAuthed, setIsAuthed] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [isInputFocused, setIsInputFocused] = useState(false);
   const styles = useMemo(() => getStyles(theme), [theme]);
 
   useEffect(() => {
@@ -101,6 +100,19 @@ export function AccessHood({
   if (isClient) {
     return (
       <div style={styles.centerBox}>
+        <style>{`
+          .ah-input:focus,
+          .ah-input:focus-visible,
+          .ah-button:focus,
+          .ah-button:focus-visible {
+            outline: none;
+            box-shadow: none;
+          }
+          /* iOS tap highlight & Firefox inner border */
+          .ah-input, .ah-button { -webkit-tap-highlight-color: transparent; }
+          .ah-button::-moz-focus-inner { border: 0; }
+        `}</style>
+
         <h1 style={styles.h1}>Authentication Required</h1>
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
@@ -112,9 +124,7 @@ export function AccessHood({
             onKeyDown={(e) => {
               if (e.key === "Enter") handleSubmit(e);
             }}
-            onFocus={() => setIsInputFocused(true)}
-            onBlur={() => setIsInputFocused(false)}
-            style={isInputFocused ? styles.inputFocused : styles.input}
+            style={styles.input}
           />
           <button type="submit" style={styles.button}>
             Enter

@@ -67,11 +67,6 @@ export const getStyles = (
       borderRadius: 8,
       border: `1px solid ${t.inputBorder}`,
     },
-    inputFocused: {
-      padding: "10px 12px",
-      borderRadius: 8,
-      border: `1.5px solid ${t.inputBorder}`,
-    },
     button: {
       padding: "10px 12px",
       borderRadius: 8,
