@@ -3,6 +3,7 @@ import {
   AUTH_FAILED_MESSAGE,
   readIsAuthed,
   writeAuthed,
+  getCachedIsAuthed,
 } from "./authStorage.js";
 import { getStyles, type AccessHoodTheme } from "./accessHoodStyles.js";
 
@@ -64,25 +65,43 @@ export function AccessHood({
 }: AccessHoodProps) {
   const [pwd, setPwd] = useState("");
   const [err, setErr] = useState("");
-  const [isAuthed, setIsAuthed] = useState(false);
+  // Initialize auth from cache synchronously to avoid flicker on re-renders
+  const [isAuthed, setIsAuthed] = useState<boolean>(() => {
+    const cached = getCachedIsAuthed(password);
+    return cached === true;
+  });
+  // Lazily mark client after mount; initial SSR/hydration returns null
   const [isClient, setIsClient] = useState(false);
   const styles = useMemo(() => getStyles(theme), [theme]);
 
+  // Detect client once
   useEffect(() => {
     setIsClient(true);
+  }, []);
+
+  // Update title when metadata.title changes
+  useEffect(() => {
     if (metadata?.title && typeof document !== "undefined") {
       document.title = metadata.title;
     }
+  }, [metadata?.title]);
+
+  // Check auth once per password change; respects cache to avoid recomputation
+  useEffect(() => {
+    let cancelled = false;
     (async () => {
       if (typeof window === "undefined") return;
       try {
         const ok = await readIsAuthed(password);
-        if (ok) setIsAuthed(true);
+        if (!cancelled) setIsAuthed(ok);
       } catch {
         // Ignore – treat as not authed when storage/crypto fail
       }
     })();
-  }, [metadata?.title, password]);
+    return () => {
+      cancelled = true;
+    };
+  }, [password]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

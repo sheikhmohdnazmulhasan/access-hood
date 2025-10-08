@@ -19,6 +19,22 @@ export const STORAGE_SALT = "ah_salt_v1";
 export const AUTH_FAILED_MESSAGE = "Incorrect password. Please try again.";
 
 /**
+ * In-memory cache of auth status per password for the lifetime of the page.
+ * This avoids re-hashing and re-reading localStorage on subsequent renders
+ * and prevents UI flicker when children re-render.
+ */
+const authedCache = new Map<string, boolean>();
+
+/**
+ * Returns the cached auth status for a given password, if known.
+ * - true: previously verified as authed this session
+ * - false: previously checked and not authed
+ * - undefined: not yet checked this session
+ */
+export const getCachedIsAuthed = (password: string): boolean | undefined =>
+  authedCache.get(password);
+
+/**
  * Converts an ArrayBuffer to a lowercase hex string.
  */
 const toHex = (buffer: ArrayBuffer): string => {
@@ -87,9 +103,13 @@ export const getAuthKeyAndValue = async (
 export const readIsAuthed = async (password: string): Promise<boolean> => {
   if (typeof window === "undefined") return false;
   try {
+    const cached = authedCache.get(password);
+    if (cached !== undefined) return cached;
     const { key, value } = await getAuthKeyAndValue(password);
     const stored = localStorage.getItem(key);
-    return stored === value;
+    const ok = stored === value;
+    authedCache.set(password, ok);
+    return ok;
   } catch {
     return false;
   }
@@ -105,6 +125,7 @@ export const writeAuthed = async (password: string): Promise<void> => {
     const { key, value } = await getAuthKeyAndValue(password);
     try {
       localStorage.setItem(key, value);
+      authedCache.set(password, true);
     } catch {}
   } catch {}
 };
