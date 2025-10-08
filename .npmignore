@@ -1,0 +1,57 @@
+## Keep the published package lean; `package.json#files: ["dist"]` already restricts output
+## This file adds extra safety to exclude dev-only assets.
+
+# Node and package manager artifacts
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+*.tsbuildinfo
+
+# Source, tests, coverage, examples, and playgrounds
+src/
+__tests__/
+__mocks__/
+test/
+tests/
+coverage/
+examples/
+example/
+playground/
+stories/
+.storybook/
+
+# Build and bundler configs
+rollup.config.*
+webpack.config.*
+vite.config.*
+babel.config.*
+jest.config.*
+vitest.config.*
+tsconfig*.json
+
+# Tooling and repo meta
+.editorconfig
+.eslint*
+.prettier*
+.stylelint*
+.commitlintrc*
+.husky/
+.github/
+.vscode/
+.idea/
+
+# Docs and scripts (not needed at runtime)
+docs/
+scripts/
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Ensure dist stays included (defensive; "files" field already handles this)
+!dist/
+!dist/**/*
+

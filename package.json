@@ -1,0 +1,58 @@
+{
+  "name": "access-hood",
+  "version": "0.1.3",
+  "description": "Zero-dependency client-side access hood for React.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sheikhmohdnazmulhasan/access-hood.git"
+  },
+  "bugs": {
+    "url": "https://github.com/sheikhmohdnazmulhasan/access-hood/issues"
+  },
+  "homepage": "https://sheikhmohdnazmulhasan.github.io/access-hood/",
+  "author": "Sheikh Mohammad Nazmul Hasan",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "peerDependencies": {
+    "react": ">=17",
+    "react-dom": ">=17"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/react": "^18.0.0",
+    "@types/react-dom": "^18.0.0"
+  },
+  "keywords": [
+    "react",
+    "nextjs",
+    "access",
+    "hood",
+    "auth",
+    "wrapper",
+    "zero-dep",
+    "access-hood"
+  ]
+}
