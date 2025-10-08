@@ -101,21 +101,24 @@ export function AccessHood({
     return (
       <div style={styles.centerBox}>
         <style>{`
-          .ah-input:focus,
-          .ah-input:focus-visible,
-          .ah-button:focus,
-          .ah-button:focus-visible {
-            outline: none;
-            box-shadow: none;
-          }
-          /* iOS tap highlight & Firefox inner border */
-          .ah-input, .ah-button { -webkit-tap-highlight-color: transparent; }
-          .ah-button::-moz-focus-inner { border: 0; }
-        `}</style>
+  .ah-input:focus-visible,
+  .ah-button:focus-visible {
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  /* Firefox keyboard focus */
+  .ah-input:-moz-focusring,
+  .ah-button:-moz-focusring {
+    outline: none !important;
+  }
+  /* Legacy Firefox inner border on buttons */
+  .ah-button::-moz-focus-inner { border: 0; }
+`}</style>
 
         <h1 style={styles.h1}>Authentication Required</h1>
         <form onSubmit={handleSubmit} style={styles.form}>
           <input
+            className="ah-input"
             type="password"
             placeholder="Enter password"
             value={pwd}
@@ -126,7 +129,7 @@ export function AccessHood({
             }}
             style={styles.input}
           />
-          <button type="submit" style={styles.button}>
+          <button type="submit" className="ah-button" style={styles.button}>
             Enter
           </button>
           {err && <p style={styles.error}>{err}</p>}
