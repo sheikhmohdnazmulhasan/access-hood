@@ -70,13 +70,20 @@ export function AccessHood({
     const cached = getCachedIsAuthed(password);
     return cached === true;
   });
-  // Lazily mark client after mount; initial SSR/hydration returns null
-  const [isClient, setIsClient] = useState(false);
+  // Track whether we are performing an async auth verification
+  const [isChecking, setIsChecking] = useState<boolean>(() => {
+    const cached = getCachedIsAuthed(password);
+    return cached === undefined;
+  });
+  // Initialize client flag synchronously on the client to avoid a flash
+  const [isClient, setIsClient] = useState<boolean>(
+    typeof window !== "undefined"
+  );
   const styles = useMemo(() => getStyles(theme), [theme]);
 
   // Detect client once
   useEffect(() => {
-    setIsClient(true);
+    if (typeof window !== "undefined") setIsClient(true);
   }, []);
 
   // Update title when metadata.title changes
@@ -91,11 +98,22 @@ export function AccessHood({
     let cancelled = false;
     (async () => {
       if (typeof window === "undefined") return;
+      const cached = getCachedIsAuthed(password);
+      if (cached !== undefined) {
+        if (!cancelled) {
+          setIsAuthed(cached === true);
+          setIsChecking(false);
+        }
+        return;
+      }
       try {
+        if (!cancelled) setIsChecking(true);
         const ok = await readIsAuthed(password);
         if (!cancelled) setIsAuthed(ok);
       } catch {
         // Ignore – treat as not authed when storage/crypto fail
+      } finally {
+        if (!cancelled) setIsChecking(false);
       }
     })();
     return () => {
@@ -122,7 +140,7 @@ export function AccessHood({
     return <>{children}</>;
   }
 
-  if (isClient) {
+  if (isClient && !isChecking) {
     return (
       <div style={styles.centerBox}>
         <style>{`
