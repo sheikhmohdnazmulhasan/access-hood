@@ -21,27 +21,25 @@ setConfig({
   baseUrl: "https://your-backend.example.com",
   // verifyPath: "/ah-verify",      // optional, defaults to /ah-verify
   // requestTimeoutMs: 8000,        // optional, defaults to 8000
+  passwordHint: "Ask the team lead",
+  metadata: {
+    title: "Protected Preview",
+    description: "This is a protected preview",
+  },
+  theme: {
+    // override any colors you want; all fields optional
+    buttonBackground: "#2563eb",
+    buttonBorder: "#1e3a8a",
+    buttonText: "#ffffff",
+    containerBorder: "#e2e8f0",
+    hintText: "#475569",
+    errorText: "#dc2626",
+  },
 });
 
 export const Demo = () => {
   return (
-    <AccessHood
-      password="demo-password"
-      passwordHint="Ask the team lead"
-      metadata={{
-        title: "Protected Preview",
-        description: "This is a protected preview",
-      }}
-      theme={{
-        // override any colors you want; all fields optional
-        buttonBackground: "#2563eb",
-        buttonBorder: "#1e3a8a",
-        buttonText: "#ffffff",
-        containerBorder: "#e2e8f0",
-        hintText: "#475569",
-        errorText: "#dc2626",
-      }}
-    >
+    <AccessHood>
       <main>
         <h1>Private content</h1>
         <p>Visible after entering the password once.</p>
@@ -72,15 +70,15 @@ app.post("/ah-verify", async (req, res) => {
 - **`AccessHood`**: React component that renders a minimal password form until access is granted.
   - **props**
     - **`children: React.ReactNode`**: Content to show after access is granted.
-    - **`password: string`** (required): Shared secret used to derive the obfuscated localStorage flag.
-    - **`passwordHint?: string`**: Optional hint displayed under the form.
-    - **`metadata?: { title?: string; description?: string }`**: Optional metadata; `title` sets `document.title` on mount.
-    - **`theme?: Partial<AccessHoodTheme>`**: Optional color theme overrides.
-- **`setConfig(config)`**: Configure remote verification.
+- **`setConfig(config)`**: Configure remote verification and gate behavior.
   - **`baseUrl?: string`**: Base URL of your backend (e.g., `https://example.com`).
   - **`verifyPath?: string`**: Optional path for the verification endpoint (default: `/ah-verify`).
   - **`requestTimeoutMs?: number`**: Optional request timeout in milliseconds (default: `8000`).
-- **`getConfig()`**: Read the current remote verification configuration.
+  - **`passwordHint?: string`**: Optional hint displayed under the form.
+  - **`metadata?: { title?: string; description?: string }`**: Optional metadata; `title` sets `document.title` on mount.
+  - **`theme?: Partial<AccessHoodTheme>`**: Optional color theme overrides.
+  - **`storageKey?: string`**: Optional identifier used to derive the obfuscated localStorage flag (default: `"ah_authed_v1"`).
+- **`getConfig()`**: Read the current configuration.
 
 #### Theming
 
@@ -104,18 +102,16 @@ const styles = getStyles(theme);
 
 ### How it works
 
-- On mount, the component derives a deterministic, obfuscated storage key/value from the `password` and a salt, and checks `localStorage` for that pair to automatically re‑grant access.
-- On submit:
-  - If a `baseUrl` is configured via `setConfig`, the component sends a `POST` request to `baseUrl + verifyPath` with body `{ password }` and expects a JSON response `{ valid: boolean }`.
-  - If the backend returns `{ valid: true }`, the derived key/value is stored in `localStorage` and access is granted.
-  - If `baseUrl` is **not** configured, the component falls back to comparing the entered password to the `password` prop (legacy behavior).
+- On mount, the component derives a deterministic, obfuscated storage key/value from the configured `storageKey` and a salt, and checks `localStorage` for that pair to automatically re‑grant access.
+- On submit, the component sends a `POST` request to `baseUrl + verifyPath` with body `{ password }` and expects a JSON response `{ valid: boolean }`.
+- If the backend returns `{ valid: true }`, the derived key/value is stored in `localStorage` and access is granted.
 - Uses Web Crypto (`SHA‑256`) when available with a tiny non‑crypto fallback to remain functional in restricted environments.
 
 ### Notes and limitations
 
 - Client‑side gate only; even with a remote check, you should not ship sensitive data to the client unless the user is authorized server‑side.
 - SSR: The gate renders on the client; the component no‑ops on the server.
-- Clearing site data (or changing `password`) will reset the gate.
+- Clearing site data (or changing `storageKey`) will reset the gate.
 
 ### Styling
 

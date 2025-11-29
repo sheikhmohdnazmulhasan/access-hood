@@ -199,26 +199,24 @@ setConfig({
   baseUrl: "https://your-backend.example.com",
   // verifyPath: "/ah-verify", // optional, defaults to /ah-verify
   // requestTimeoutMs: 8000,   // optional, defaults to 8000
+  passwordHint: "Ask the team lead",
+  metadata: {
+    title: "Protected Preview",
+    description: "This is a protected preview",
+  },
+  theme: {
+    buttonBackground: "#2563eb",
+    buttonBorder: "#1e3a8a",
+    buttonText: "#ffffff",
+    containerBorder: "#e2e8f0",
+    hintText: "#475569",
+    errorText: "#dc2626",
+  },
 });
 
 export const Demo = () => {
   return (
-    &lt;AccessHood
-      password="demo-password"
-      passwordHint="Ask the team lead"
-      metadata={{
-        title: "Protected Preview",
-        description: "This is a protected preview",
-      }}
-      theme={{
-        buttonBackground: "#2563eb",
-        buttonBorder: "#1e3a8a",
-        buttonText: "#ffffff",
-        containerBorder: "#e2e8f0",
-        hintText: "#475569",
-        errorText: "#dc2626",
-      }}
-    &gt;
+    &lt;AccessHood&gt;
       &lt;main&gt;
         &lt;h1&gt;Private content&lt;/h1&gt;
         &lt;p&gt;Visible after entering the password once.&lt;/p&gt;
@@ -236,23 +234,24 @@ export const Demo = () => {
           <code>baseUrl</code>, it verifies the password against your backend
           before unlocking.
         </p>
-        <pre><code>&lt;AccessHood password="my-shared-password"&gt;{content}&lt;/AccessHood&gt;</code></pre>
+        <pre><code>&lt;AccessHood&gt;{content}&lt;/AccessHood&gt;</code></pre>
       </div>
 
       <div class="feature">
         <h3>One-time unlock per browser</h3>
         <p>
-          On successful verification, an obfuscated key/value derived from the
-          password is stored in <code>localStorage</code>, so the content stays
-          unlocked for subsequent visits.
+          On successful verification, an obfuscated key/value derived from a
+          configured storage identifier is stored in <code>localStorage</code>,
+          so the content stays unlocked for subsequent visits.
         </p>
       </div>
 
       <div class="feature">
         <h3>Theming</h3>
         <p>
-          Override colors via the <code>theme</code> prop or compute styles with
-          <code>getStyles</code> for reuse.
+          Override colors via the <code>theme</code> option in
+          <code>setConfig</code> or compute styles with <code>getStyles</code>
+          for reuse.
         </p>
         <pre><code>import { getStyles } from "access-hood";
 const styles = getStyles({ buttonBackground: "#2563eb" });</code></pre>
@@ -262,9 +261,9 @@ const styles = getStyles({ buttonBackground: "#2563eb" });</code></pre>
         <h3>Metadata</h3>
         <p>
           Set <code>document.title</code> when the gate mounts using the
-          optional <code>metadata</code> prop.
+          optional <code>metadata</code> option in <code>setConfig</code>.
         </p>
-        <pre><code>&lt;AccessHood metadata={{ title: "Protected Preview" }}&gt;...&lt;/AccessHood&gt;</code></pre>
+        <pre><code>setConfig({ metadata: { title: "Protected Preview" } });</code></pre>
       </div>
 
       <div class="feature">
@@ -316,22 +315,6 @@ const styles = getStyles({ buttonBackground: "#2563eb" });</code></pre>
         <li>
           <code>children: React.ReactNode</code> — Content to show after access
           is granted
-        </li>
-        <li>
-          <code>password: string</code> — Required shared secret used to derive
-          the obfuscated localStorage flag
-        </li>
-        <li>
-          <code>passwordHint?: string</code> — Optional hint rendered under the
-          form
-        </li>
-        <li>
-          <code>metadata?: { title?: string; description?: string }</code> —
-          Optional metadata; sets <code>document.title</code> if provided
-        </li>
-        <li>
-          <code>theme?: Partial&lt;AccessHoodTheme&gt;</code> — Optional theme
-          overrides for colors
         </li>
       </ul>
 

@@ -10,6 +10,7 @@ import {
   AUTH_VERIFY_UNAVAILABLE_MESSAGE,
   verifyPasswordRemotely,
 } from "./remoteVerify.js";
+import { getConfig } from "./config.js";
 
 /**
  * AccessHoodMetadata
@@ -27,10 +28,6 @@ export type AccessHoodMetadata = {
 // This is the type that will be used internally by the component
 type AccessHoodProps = {
   children: React.ReactNode;
-  metadata?: AccessHoodMetadata;
-  password: string;
-  passwordHint?: string;
-  theme?: Partial<AccessHoodTheme>;
 };
 
 // This is the type that will be exported and used by the consumer
@@ -39,9 +36,10 @@ export type AccessHood = Omit<AccessHoodProps, "children">;
 /**
  * AccessHood component
  *
- * Simple client-side gate that verifies a provided password and sets an
- * obfuscated auth flag in localStorage. On mount, it checks the stored flag
- * using derived, non-readable keys/values from `authStorage`.
+ * Simple client-side gate that verifies a provided password against a remote
+ * backend and, on success, sets an obfuscated auth flag in localStorage. On
+ * mount, it checks the stored flag using derived, non-readable keys/values
+ * from `authStorage`.
  */
 
 // styles imported from accessHoodStyles
@@ -60,23 +58,18 @@ export type AccessHood = Omit<AccessHoodProps, "children">;
  * - Works only on the client. In SSR, initial render will return `null` and
  *   the form will appear once hydrated.
  */
-export function AccessHood({
-  children,
-  metadata,
-  password,
-  passwordHint,
-  theme,
-}: AccessHoodProps) {
+export function AccessHood({ children }: AccessHoodProps) {
+  const { metadata, passwordHint, theme } = getConfig();
   const [pwd, setPwd] = useState("");
   const [err, setErr] = useState("");
   // Initialize auth from cache synchronously to avoid flicker on re-renders
   const [isAuthed, setIsAuthed] = useState<boolean>(() => {
-    const cached = getCachedIsAuthed(password);
+    const cached = getCachedIsAuthed();
     return cached === true;
   });
   // Track whether we are performing an async auth verification
   const [isChecking, setIsChecking] = useState<boolean>(() => {
-    const cached = getCachedIsAuthed(password);
+    const cached = getCachedIsAuthed();
     return cached === undefined;
   });
   // Initialize client flag synchronously on the client to avoid a flash
@@ -97,12 +90,12 @@ export function AccessHood({
     }
   }, [metadata?.title]);
 
-  // Check auth once per password change; respects cache to avoid recomputation
+  // Check auth once on mount; respects cache to avoid recomputation
   useEffect(() => {
     let cancelled = false;
     (async () => {
       if (typeof window === "undefined") return;
-      const cached = getCachedIsAuthed(password);
+      const cached = getCachedIsAuthed();
       if (cached !== undefined) {
         if (!cancelled) {
           setIsAuthed(cached === true);
@@ -112,7 +105,7 @@ export function AccessHood({
       }
       try {
         if (!cancelled) setIsChecking(true);
-        const ok = await readIsAuthed(password);
+        const ok = await readIsAuthed();
         if (!cancelled) setIsAuthed(ok);
       } catch {
         // Ignore – treat as not authed when storage/crypto fail
@@ -123,7 +116,7 @@ export function AccessHood({
     return () => {
       cancelled = true;
     };
-  }, [password]);
+  }, []);
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -136,7 +129,7 @@ export function AccessHood({
     if (remoteResult.ok) {
       if (remoteResult.valid) {
         try {
-          await writeAuthed(password);
+          await writeAuthed();
         } catch {
           // Swallow storage errors; treat as authed even if persistence fails.
         }
@@ -145,22 +138,6 @@ export function AccessHood({
       }
 
       setErr(AUTH_FAILED_MESSAGE);
-      return;
-    }
-
-    if (remoteResult.reason === "NO_BASE_URL") {
-      // Backwards compatibility: when no remote base URL is configured, fall
-      // back to the original local password comparison behavior.
-      if (pwd === password) {
-        try {
-          await writeAuthed(password);
-        } catch {
-          // Swallow storage errors; treat as authed even if persistence fails.
-        }
-        setIsAuthed(true);
-      } else {
-        setErr(AUTH_FAILED_MESSAGE);
-      }
       return;
     }
 
