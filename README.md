@@ -10,21 +10,28 @@ Zero‑dependency, client‑side access hood for React. It provides a lightweigh
 npm install access-hood
 ```
 
-### Quick start
+### Quick start (with remote verification)
 
 ```tsx
 import React from "react";
-import { AccessHood } from "access-hood";
+import { AccessHood, setConfig } from "access-hood";
+
+// Configure once at app startup (e.g., in your root file)
+setConfig({
+  baseUrl: "https://your-backend.example.com",
+  // verifyPath: "/ah-verify",      // optional, defaults to /ah-verify
+  // requestTimeoutMs: 8000,        // optional, defaults to 8000
+});
 
 export const Demo = () => {
   return (
     <AccessHood
-      password={"demo-password"}
+      password="demo-password"
       passwordHint="Ask the team lead"
-      metadata={
+      metadata={{
         title: "Protected Preview",
-        description: "This is a protected preview"
-        }
+        description: "This is a protected preview",
+      }}
       theme={{
         // override any colors you want; all fields optional
         buttonBackground: "#2563eb",
@@ -44,15 +51,36 @@ export const Demo = () => {
 };
 ```
 
+On your backend, implement the `ah-verify` endpoint:
+
+```ts
+// POST /ah-verify
+// Body: { password: string }
+// Response: { valid: boolean }
+app.post("/ah-verify", async (req, res) => {
+  const { password } = req.body;
+
+  // Replace with your own verification logic
+  const isValid = password === process.env.ACCESS_HOOD_PASSWORD;
+
+  res.json({ valid: isValid });
+});
+```
+
 ### API
 
 - **`AccessHood`**: React component that renders a minimal password form until access is granted.
   - **props**
     - **`children: React.ReactNode`**: Content to show after access is granted.
-    - **`password: string`** (required): The shared password to unlock the content.
+    - **`password: string`** (required): Shared secret used to derive the obfuscated localStorage flag.
     - **`passwordHint?: string`**: Optional hint displayed under the form.
     - **`metadata?: { title?: string; description?: string }`**: Optional metadata; `title` sets `document.title` on mount.
     - **`theme?: Partial<AccessHoodTheme>`**: Optional color theme overrides.
+- **`setConfig(config)`**: Configure remote verification.
+  - **`baseUrl?: string`**: Base URL of your backend (e.g., `https://example.com`).
+  - **`verifyPath?: string`**: Optional path for the verification endpoint (default: `/ah-verify`).
+  - **`requestTimeoutMs?: number`**: Optional request timeout in milliseconds (default: `8000`).
+- **`getConfig()`**: Read the current remote verification configuration.
 
 #### Theming
 
@@ -76,14 +104,16 @@ const styles = getStyles(theme);
 
 ### How it works
 
-- On submit, the component compares the input to `password`.
-- If correct, it derives a deterministic, obfuscated storage key and value from the password and a salt, then stores the value at that key in `localStorage`.
-- On mount, it checks for that derived key/value to automatically re‑grant access (no network calls).
+- On mount, the component derives a deterministic, obfuscated storage key/value from the `password` and a salt, and checks `localStorage` for that pair to automatically re‑grant access.
+- On submit:
+  - If a `baseUrl` is configured via `setConfig`, the component sends a `POST` request to `baseUrl + verifyPath` with body `{ password }` and expects a JSON response `{ valid: boolean }`.
+  - If the backend returns `{ valid: true }`, the derived key/value is stored in `localStorage` and access is granted.
+  - If `baseUrl` is **not** configured, the component falls back to comparing the entered password to the `password` prop (legacy behavior).
 - Uses Web Crypto (`SHA‑256`) when available with a tiny non‑crypto fallback to remain functional in restricted environments.
 
 ### Notes and limitations
 
-- Client‑side only; gating is purely visual. Do not ship sensitive data to the client unless the user is authorized server‑side.
+- Client‑side gate only; even with a remote check, you should not ship sensitive data to the client unless the user is authorized server‑side.
 - SSR: The gate renders on the client; the component no‑ops on the server.
 - Clearing site data (or changing `password`) will reset the gate.
 
@@ -100,6 +130,8 @@ First‑class TypeScript types are included. The package ships `types` alongside
 - `src/AccessHood.tsx` — Functional React component implementing the gate and UX.
 - `src/accessHoodStyles.ts` — Centralized inline styles used by the component.
 - `src/authStorage.ts` — Internal helpers that derive obfuscated `localStorage` key/value and read/write the auth flag.
+- `src/config.ts` — Remote verification configuration helpers (`getConfig`, `setConfig`).
+- `src/remoteVerify.ts` — Internal remote password verification helper.
 - `src/index.ts` — Public exports.
 
 ### License

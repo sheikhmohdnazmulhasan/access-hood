@@ -6,6 +6,10 @@ import {
   getCachedIsAuthed,
 } from "./authStorage.js";
 import { getStyles, type AccessHoodTheme } from "./accessHoodStyles.js";
+import {
+  AUTH_VERIFY_UNAVAILABLE_MESSAGE,
+  verifyPasswordRemotely,
+} from "./remoteVerify.js";
 
 /**
  * AccessHoodMetadata
@@ -125,17 +129,44 @@ export function AccessHood({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // If the password is correct, write the auth flag to localStorage
-    if (pwd === password) {
-      try {
-        await writeAuthed(password);
+    setErr("");
+
+    const remoteResult = await verifyPasswordRemotely({ password: pwd });
+
+    if (remoteResult.ok) {
+      if (remoteResult.valid) {
+        try {
+          await writeAuthed(password);
+        } catch {
+          // Swallow storage errors; treat as authed even if persistence fails.
+        }
         setIsAuthed(true);
-      } catch {
-        setIsAuthed(true);
+        return;
       }
-    } else {
+
       setErr(AUTH_FAILED_MESSAGE);
+      return;
     }
+
+    if (remoteResult.reason === "NO_BASE_URL") {
+      // Backwards compatibility: when no remote base URL is configured, fall
+      // back to the original local password comparison behavior.
+      if (pwd === password) {
+        try {
+          await writeAuthed(password);
+        } catch {
+          // Swallow storage errors; treat as authed even if persistence fails.
+        }
+        setIsAuthed(true);
+      } else {
+        setErr(AUTH_FAILED_MESSAGE);
+      }
+      return;
+    }
+
+    // Any other failure is treated as a verification error unrelated to the
+    // provided password (e.g., network, timeout, or server issues).
+    setErr(AUTH_VERIFY_UNAVAILABLE_MESSAGE);
   };
 
   // If the user is authed, return the children

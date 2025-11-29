@@ -177,9 +177,9 @@
     <div class="container">
       <p>
         Zero-dependency, client-side access hood for React. It provides a
-        lightweight visual gate that asks for a password once and stores an
-        obfuscated flag in <code>localStorage</code> to reveal gated content on
-        subsequent visits.
+        lightweight visual gate that asks for a password once, verifies it
+        against your backend (when configured), and stores an obfuscated flag in
+        <code>localStorage</code> to reveal gated content on subsequent visits.
       </p>
 
       <h2>Installation</h2>
@@ -188,21 +188,28 @@
 
       <h2>Quick start</h2>
       <p>
-        Wrap protected content with <code>AccessHood</code>. Users enter a
-        shared password once per browser:
+        Configure remote verification and wrap protected content with
+        <code>AccessHood</code>. Users enter a shared password once per browser:
       </p>
       <pre><code>import React from "react";
-import { AccessHood } from "access-hood";
+import { AccessHood, setConfig } from "access-hood";
+
+// Configure once at app startup (e.g., in your root file)
+setConfig({
+  baseUrl: "https://your-backend.example.com",
+  // verifyPath: "/ah-verify", // optional, defaults to /ah-verify
+  // requestTimeoutMs: 8000,   // optional, defaults to 8000
+});
 
 export const Demo = () => {
   return (
     &lt;AccessHood
       password="demo-password"
       passwordHint="Ask the team lead"
-      metadata={
-          title: "Protected Preview",
-          description: "This is a protected preview"
-        }
+      metadata={{
+        title: "Protected Preview",
+        description: "This is a protected preview",
+      }}
       theme={{
         buttonBackground: "#2563eb",
         buttonBorder: "#1e3a8a",
@@ -225,8 +232,9 @@ export const Demo = () => {
       <div class="feature">
         <h3>Client-side visual gate</h3>
         <p>
-          Shows a minimal password form until unlocked. No network calls or
-          server required.
+          Shows a minimal password form until unlocked. When configured with a
+          <code>baseUrl</code>, it verifies the password against your backend
+          before unlocking.
         </p>
         <pre><code>&lt;AccessHood password="my-shared-password"&gt;{content}&lt;/AccessHood&gt;</code></pre>
       </div>
@@ -234,9 +242,9 @@ export const Demo = () => {
       <div class="feature">
         <h3>One-time unlock per browser</h3>
         <p>
-          On success, an obfuscated key/value derived from the password is
-          stored in <code>localStorage</code>, so the content stays unlocked for
-          subsequent visits.
+          On successful verification, an obfuscated key/value derived from the
+          password is stored in <code>localStorage</code>, so the content stays
+          unlocked for subsequent visits.
         </p>
       </div>
 
@@ -270,8 +278,8 @@ const styles = getStyles({ buttonBackground: "#2563eb" });</code></pre>
       <h2>Notes and limitations</h2>
       <ul>
         <li>
-          Client-side only; gating is purely visual. Do not ship sensitive data
-          unless authorized server-side.
+          Client-side gate only; even with a remote check, do not ship sensitive
+          data unless authorized server-side.
         </li>
         <li>
           SSR: The gate renders on the client. Initial server render returns
@@ -290,6 +298,10 @@ const styles = getStyles({ buttonBackground: "#2563eb" });</code></pre>
           <code>AccessHood</code> — React component that renders the gate and
           your children when unlocked
         </li>
+        <li><code>setConfig</code> — configure remote verification</li>
+        <li>
+          <code>getConfig</code> — read the current remote verification config
+        </li>
         <li>
           <code>getStyles</code> — helper to compute the inline styles used by
           the component
@@ -306,7 +318,8 @@ const styles = getStyles({ buttonBackground: "#2563eb" });</code></pre>
           is granted
         </li>
         <li>
-          <code>password: string</code> — Required shared password to unlock
+          <code>password: string</code> — Required shared secret used to derive
+          the obfuscated localStorage flag
         </li>
         <li>
           <code>passwordHint?: string</code> — Optional hint rendered under the
