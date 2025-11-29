@@ -121,9 +121,11 @@ export function AccessHood({
     };
   }, [password]);
 
+  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // If the password is correct, write the auth flag to localStorage
     if (pwd === password) {
       try {
         await writeAuthed(password);
@@ -136,10 +138,12 @@ export function AccessHood({
     }
   };
 
+  // If the user is authed, return the children
   if (isClient && isAuthed) {
     return <>{children}</>;
   }
 
+  // If the user is not authed, return the password form
   if (isClient && !isChecking) {
     return (
       <div style={styles.centerBox}>
@@ -182,5 +186,6 @@ export function AccessHood({
     );
   }
 
+  // If the user is not client, return null
   return null;
 }
