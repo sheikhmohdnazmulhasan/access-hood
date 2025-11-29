@@ -4,13 +4,11 @@ import type { AccessHoodTheme } from "./accessHoodStyles.js";
 /**
  * Remote verification and UI configuration.
  *
- * Consumers configure the base URL and behavior of the remote password
- * verification endpoint, as well as visual and metadata options. The
- * `AccessHood` component reads from this configuration instead of
- * receiving individual props (other than `children`).
+ * Consumers configure the URL and behavior of the remote password verification
+ * endpoint, as well as visual and metadata options. The `AccessHood` component
+ * reads from this configuration instead of receiving individual props (other
+ * than `children`).
  */
-
-export const DEFAULT_VERIFY_PATH = "/ah-verify";
 
 export const DEFAULT_VERIFY_TIMEOUT_MS = 8000;
 
@@ -21,9 +19,8 @@ export const DEFAULT_STORAGE_KEY = "ah_authed_v1";
  *
  * Describes the runtime configuration for remote password verification and
  * visual behavior.
- * - baseUrl: Base URL of the backend that exposes the `ah-verify` endpoint.
- * - verifyPath: Optional path for the verification endpoint. Defaults to
- *   `/ah-verify`.
+ * - verifyUrl: URL of the backend endpoint that verifies the password. Can be
+ *   absolute or relative to the current origin. Required for verification.
  * - requestTimeoutMs: Optional timeout for the network request in
  *   milliseconds. Defaults to 8000ms.
  * - passwordHint: Optional hint displayed under the form.
@@ -33,8 +30,7 @@ export const DEFAULT_STORAGE_KEY = "ah_authed_v1";
  *   pair. Defaults to `"ah_authed_v1"`.
  */
 export type AccessHoodConfig = {
-  baseUrl?: string;
-  verifyPath?: string;
+  verifyUrl: string;
   requestTimeoutMs?: number;
   passwordHint?: string;
   metadata?: AccessHoodMetadata;
@@ -43,7 +39,7 @@ export type AccessHoodConfig = {
 };
 
 let currentConfig: AccessHoodConfig = {
-  verifyPath: DEFAULT_VERIFY_PATH,
+  verifyUrl: "",
   requestTimeoutMs: DEFAULT_VERIFY_TIMEOUT_MS,
   storageKey: DEFAULT_STORAGE_KEY,
 };
@@ -64,7 +60,7 @@ export const getConfig = (): AccessHoodConfig => currentConfig;
  *
  * Example:
  * setConfig({
- *   baseUrl: "https://my-api.example.com",
+ *   verifyUrl: "/api/ah-verify",
  *   passwordHint: "Ask the team lead",
  * });
  */

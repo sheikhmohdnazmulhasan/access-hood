@@ -1,8 +1,4 @@
-import {
-  DEFAULT_VERIFY_PATH,
-  DEFAULT_VERIFY_TIMEOUT_MS,
-  getConfig,
-} from "./config.js";
+import { DEFAULT_VERIFY_TIMEOUT_MS, getConfig } from "./config.js";
 
 /**
  * AUTH_VERIFY_UNAVAILABLE_MESSAGE
@@ -20,7 +16,7 @@ export const AUTH_VERIFY_UNAVAILABLE_MESSAGE =
  * Describes the reason why a remote verification attempt failed.
  */
 export type RemoteVerifyFailureReason =
-  | "NO_BASE_URL"
+  | "NO_URL"
   | "NO_WINDOW"
   | "NETWORK"
   | "TIMEOUT"
@@ -45,26 +41,6 @@ export type RemoteVerifyResult =
     };
 
 /**
- * buildVerifyUrl
- *
- * Computes the absolute URL for the verification endpoint from the configured
- * base URL and verify path. Returns `undefined` when the base URL is missing.
- */
-const buildVerifyUrl = (): string | undefined => {
-  const config = getConfig();
-  if (!config.baseUrl) return undefined;
-
-  const verifyPath = config.verifyPath ?? DEFAULT_VERIFY_PATH;
-
-  try {
-    const url = new URL(verifyPath, config.baseUrl);
-    return url.toString();
-  } catch {
-    return undefined;
-  }
-};
-
-/**
  * verifyPasswordRemotely
  *
  * Sends the provided password to the configured `ah-verify` endpoint. The
@@ -84,9 +60,9 @@ export const verifyPasswordRemotely = async ({
     return { ok: false, reason: "NO_WINDOW" };
   }
 
-  const url = buildVerifyUrl();
+  const url = getConfig().verifyUrl;
   if (!url) {
-    return { ok: false, reason: "NO_BASE_URL" };
+    return { ok: false, reason: "NO_URL" };
   }
 
   const timeoutMs = getConfig().requestTimeoutMs ?? DEFAULT_VERIFY_TIMEOUT_MS;

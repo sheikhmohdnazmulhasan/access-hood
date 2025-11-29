@@ -196,8 +196,7 @@ import { AccessHood, setConfig } from "access-hood";
 
 // Configure once at app startup (e.g., in your root file)
 setConfig({
-  baseUrl: "https://your-backend.example.com",
-  // verifyPath: "/ah-verify", // optional, defaults to /ah-verify
+  verifyUrl: "/api/ah-verify", // can be absolute or relative; required
   // requestTimeoutMs: 8000,   // optional, defaults to 8000
   passwordHint: "Ask the team lead",
   metadata: {
@@ -231,7 +230,7 @@ export const Demo = () => {
         <h3>Client-side visual gate</h3>
         <p>
           Shows a minimal password form until unlocked. When configured with a
-          <code>baseUrl</code>, it verifies the password against your backend
+          <code>verifyUrl</code>, it verifies the password against your backend
           before unlocking.
         </p>
         <pre><code>&lt;AccessHood&gt;{content}&lt;/AccessHood&gt;</code></pre>

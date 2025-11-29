@@ -18,8 +18,7 @@ import { AccessHood, setConfig } from "access-hood";
 
 // Configure once at app startup (e.g., in your root file)
 setConfig({
-  baseUrl: "https://your-backend.example.com",
-  // verifyPath: "/ah-verify",      // optional, defaults to /ah-verify
+  verifyUrl: "/api/ah-verify", // can be absolute or relative; required
   // requestTimeoutMs: 8000,        // optional, defaults to 8000
   passwordHint: "Ask the team lead",
   metadata: {
@@ -71,8 +70,7 @@ app.post("/ah-verify", async (req, res) => {
   - **props**
     - **`children: React.ReactNode`**: Content to show after access is granted.
 - **`setConfig(config)`**: Configure remote verification and gate behavior.
-  - **`baseUrl?: string`**: Base URL of your backend (e.g., `https://example.com`).
-  - **`verifyPath?: string`**: Optional path for the verification endpoint (default: `/ah-verify`).
+  - **`verifyUrl?: string`**: URL of your backend verification endpoint (e.g., `"/api/ah-verify"` or `"https://example.com/ah-verify"`). Required.
   - **`requestTimeoutMs?: number`**: Optional request timeout in milliseconds (default: `8000`).
   - **`passwordHint?: string`**: Optional hint displayed under the form.
   - **`metadata?: { title?: string; description?: string }`**: Optional metadata; `title` sets `document.title` on mount.
@@ -103,7 +101,7 @@ const styles = getStyles(theme);
 ### How it works
 
 - On mount, the component derives a deterministic, obfuscated storage key/value from the configured `storageKey` and a salt, and checks `localStorage` for that pair to automatically re‑grant access.
-- On submit, the component sends a `POST` request to `baseUrl + verifyPath` with body `{ password }` and expects a JSON response `{ valid: boolean }`.
+- On submit, the component sends a `POST` request to `verifyUrl` with body `{ password }` and expects a JSON response `{ valid: boolean }`.
 - If the backend returns `{ valid: true }`, the derived key/value is stored in `localStorage` and access is granted.
 - Uses Web Crypto (`SHA‑256`) when available with a tiny non‑crypto fallback to remain functional in restricted environments.
 
